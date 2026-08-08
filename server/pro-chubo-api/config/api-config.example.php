@@ -9,4 +9,5 @@ return array(
     'thumbnail_base_url' => 'https://pro-chubo.com/api/v1/thumb.php',
     'max_per_page' => 60,
     'shipped_retention_days' => 30,
+    'catalog_database_path' => dirname(__FILE__) . '/api-cache/catalog.sqlite',
 );
