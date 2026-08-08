@@ -10,16 +10,37 @@ final class ProChuboApiClient
     ) {
     }
 
-    public function products(string $storeId): array
+    public function products(string $storeId, array $query = []): array
+    {
+        return $this->productsPage($storeId, $query)['data'];
+    }
+
+    public function productsPage(string $storeId, array $query = []): array
     {
         $url = $this->baseUrl . '/stores/' . rawurlencode($storeId) . '/products';
-        $body = $this->request($url);
-        $decoded = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        if ($query !== []) {
+            $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        }
+        $decoded = json_decode($this->request($url), true, 512, JSON_THROW_ON_ERROR);
         $products = isset($decoded['data']) && is_array($decoded['data']) ? $decoded['data'] : $decoded;
         if (!is_array($products)) {
             throw new RuntimeException('商品APIのレスポンス形式が正しくありません。');
         }
-        return array_values(array_filter($products, 'is_array'));
+        return [
+            'data' => array_values(array_filter($products, 'is_array')),
+            'meta' => isset($decoded['meta']) && is_array($decoded['meta']) ? $decoded['meta'] : [],
+        ];
+    }
+
+    public function categories(string $storeId): array
+    {
+        $url = $this->baseUrl . '/stores/' . rawurlencode($storeId) . '/categories';
+        $decoded = json_decode($this->request($url), true, 512, JSON_THROW_ON_ERROR);
+        $categories = isset($decoded['data']) && is_array($decoded['data']) ? $decoded['data'] : $decoded;
+        if (!is_array($categories)) {
+            throw new RuntimeException('分類APIのレスポンス形式が正しくありません。');
+        }
+        return array_values(array_filter($categories, 'is_array'));
     }
 
     public function product(string $productId): array

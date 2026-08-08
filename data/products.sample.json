@@ -9,6 +9,7 @@
     "dimensions_mm": {"width": 1200, "depth": 800, "height": 1890},
     "price": {"tax_excluded": 118000, "tax_included": 129800, "currency": "JPY", "ask": false},
     "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "category": {"class1": "冷機器", "class2_id": 16, "class2": "縦型4枚扉冷凍庫"},
     "images": [
       {"url": "https://pro-chubo.com/img_item/2300001273143-0.jpg"},
       {"url": "https://pro-chubo.com/img_item/2300001273143-1.jpg"},
@@ -32,6 +33,7 @@
     "dimensions_mm": {"width": 2500, "depth": 1400, "height": 1650},
     "price": {"tax_excluded": 2454546, "tax_included": 2700000, "currency": "JPY", "ask": false},
     "inventory": {"status": "negotiating", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "category": {"class1": "その他", "class2_id": 5485, "class2": "特殊機械"},
     "images": [
       {"url": "https://pro-chubo.com/img_item/2300001273006-0.jpg"},
       {"url": "https://pro-chubo.com/img_item/2300001273006-1.jpg"},
@@ -51,6 +53,7 @@
     "dimensions_mm": {"width": 1200, "depth": 830, "height": 1900},
     "price": {"tax_excluded": 160000, "tax_included": 176000, "currency": "JPY", "ask": false},
     "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "category": {"class1": "冷機器", "class2_id": 6, "class2": "縦型4枚扉冷蔵庫"},
     "images": [
       {"url": "https://pro-chubo.com/img_item/2300001273099-0.jpg"},
       {"url": "https://pro-chubo.com/img_item/2300001273099-1.jpg"},
@@ -70,6 +73,7 @@
     "dimensions_mm": {"width": 550, "depth": 650, "height": 1120},
     "price": {"tax_excluded": 150000, "tax_included": 165000, "currency": "JPY", "ask": false},
     "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "category": {"class1": "事務用品", "class2_id": 5499, "class2": "複合機"},
     "images": [
       {"url": "https://pro-chubo.com/img_item/2300001273082-0.jpg"},
       {"url": "https://pro-chubo.com/img_item/2300001273082-1.jpg"},
@@ -89,6 +93,7 @@
     "dimensions_mm": {"width": 1500, "depth": 800, "height": 1900},
     "price": {"tax_excluded": 151800, "tax_included": 166980, "currency": "JPY", "ask": false},
     "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "category": {"class1": "冷機器", "class2_id": 25, "class2": "縦型恒温高湿庫"},
     "images": [
       {"url": "https://pro-chubo.com/img_item/2300001273105-0.jpg"},
       {"url": "https://pro-chubo.com/img_item/2300001273105-1.jpg"},
