@@ -13,7 +13,7 @@ if (!is_array($apiConfig)) {
 }
 
 ob_start();
-require_once PRO_CHUBO_PUBLIC_ROOT . '/cmn/db.php';
+require_once '/home/xsvx1007016/rise-up.net/public_html/rubs/cmn/config.php';
 ob_end_clean();
 
 function api_config($key, $default)
@@ -160,6 +160,49 @@ function api_status_code($status)
         return 'shipped';
     }
     return 'unavailable';
+}
+
+function api_hyper_status_code($statusNo)
+{
+    if ((int)$statusNo === 1) return 'available';
+    if ((int)$statusNo === 2) return 'shipped';
+    if ((int)$statusNo === 4) return 'negotiating';
+    if ((int)$statusNo === 5 || (int)$statusNo === 7) return 'reserved';
+    return 'unavailable';
+}
+
+function api_hyper_product_from()
+{
+    return 'FROM tblItemData d INNER JOIN mstItemModel m ON d.item_model_no=m.item_model_no INNER JOIN mstItemClass1 c1 ON m.class1_no=c1.class1_no INNER JOIN mstItemClass2 c2 ON m.class2_no=c2.class2_no LEFT JOIN mstShop s ON d.shop_id=s.shop_id LEFT JOIN mstItemRank r ON d.rank_no=r.rank_no LEFT JOIN mstItemStatus st ON d.status_no=st.status_no';
+}
+
+function api_hyper_product_select()
+{
+    return 'SELECT d.item_data_no,d.jancode,d.shop_id,d.status_no,d.rank_no,d.year,d.size_w,d.size_d,d.size_h,d.price_sales,d.flag_ask_price,d.comment,d.date_ship,d.datetime_stock,d.count_photo,d.cmn_photo_no,m.name,m.supple,m.maker,m.model,m.details,m.movie_url,c1.class1_no,c1.class1_name,c2.class2_no,c2.class2_name,s.shop_name,r.rank_name,st.status_name ' . api_hyper_product_from();
+}
+
+function api_hyper_public_where($storeId, &$parameters)
+{
+    $days=max(0,(int)api_config('shipped_retention_days',30));
+    $where='d.status_inside_no=1 AND d.status_no<>7 AND (d.status_no<>2 OR (d.date_ship IS NOT NULL AND d.date_ship>=DATE_SUB(CURDATE(), INTERVAL '.$days.' DAY)))';
+    if($storeId!==null){$where.=' AND d.shop_id=:store_id';$parameters[':store_id']=(string)$storeId;}
+    return $where;
+}
+
+function api_hyper_images($row, $includeAll)
+{
+    $count=max(0,(int)$row['count_photo']); if($count===0)return array(); if(!$includeAll)$count=1;
+    $jancode=(string)$row['jancode']; $common=(int)$row['cmn_photo_no']; $base='https://rise-up.net/rubs/img/'.($common>0?'item_cmn':'item'); $key=$common>0?(string)$common:$jancode; $thumb=rtrim(api_config('thumbnail_base_url',''),'/'); $images=array();
+    for($no=0;$no<$count;$no++)$images[]=array('url'=>$base.'/'.rawurlencode($key.'-'.$no.'.jpg'),'thumbnail_url'=>$thumb.'?id='.rawurlencode($jancode).'&no='.$no.'&size=480'.($common>0?'&common='.$common:''),'sort_order'=>$no);
+    return $images;
+}
+
+function api_normalise_hyper_product($row, $includeDescription)
+{
+    $price=(int)$row['price_sales']; $status=api_hyper_status_code($row['status_no']); $name=trim((string)$row['name']); if(trim((string)$row['supple'])!=='')$name.=' '.trim((string)$row['supple']);
+    $product=array('id'=>(string)$row['jancode'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_name']),'store_id'=>(string)$row['shop_id'],'store_name'=>trim(strip_tags((string)$row['shop_name'])),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_no'],'class2_id'=>(int)$row['class2_no'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images($row,$includeDescription),'videos'=>trim((string)$row['movie_url'])!==''?array(array('url'=>trim((string)$row['movie_url']))):array(),'listed_at'=>trim((string)$row['datetime_stock']));
+    if($includeDescription){$product['description']=trim((string)$row['comment']);$product['details']=trim((string)$row['details']);}
+    return $product;
 }
 
 function api_product_images($jancode)

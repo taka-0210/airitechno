@@ -8,4 +8,5 @@ return array(
     'image_base_url' => 'https://pro-chubo.com/img_item',
     'thumbnail_base_url' => 'https://pro-chubo.com/api/v1/thumb.php',
     'max_per_page' => 60,
+    'shipped_retention_days' => 30,
 );

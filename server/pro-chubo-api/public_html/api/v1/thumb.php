@@ -4,6 +4,7 @@ require_once __DIR__ . '/lib/bootstrap.php';
 
 $jancode = isset($_GET['id']) ? (string) $_GET['id'] : '';
 $number = isset($_GET['no']) ? (int) $_GET['no'] : 0;
+$common = isset($_GET['common']) ? (int) $_GET['common'] : 0;
 $size = isset($_GET['size']) ? (int) $_GET['size'] : 480;
 $size = max(160, min(960, $size));
 
@@ -12,7 +13,9 @@ if (!preg_match('/^[0-9]{13}$/', $jancode) || $number < 0 || $number > 30) {
     exit;
 }
 
-$matches = glob(PRO_CHUBO_PUBLIC_ROOT . '/img_item/' . $jancode . '-' . $number . '.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
+$sourceRoot = '/home/xsvx1007016/rise-up.net/public_html/rubs/img/' . ($common > 0 ? 'item_cmn/' : 'item/');
+$sourceId = $common > 0 ? (string) $common : $jancode;
+$matches = glob($sourceRoot . $sourceId . '-' . $number . '.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
 if (!is_array($matches) || !isset($matches[0]) || !is_file($matches[0])) {
     http_response_code(404);
     exit;
@@ -25,7 +28,7 @@ if (!$imageInfo || $imageInfo[0] < 1 || $imageInfo[1] < 1) {
 }
 
 $cacheRoot = rtrim(api_config('cache_directory', PRO_CHUBO_DOMAIN_ROOT . '/api-cache'), '/');
-$cacheDirectory = $cacheRoot . '/thumbnails/' . $jancode;
+$cacheDirectory = $cacheRoot . '/thumbnails/' . ($common > 0 ? 'common-' . $common : $jancode);
 $cachePath = $cacheDirectory . '/' . $number . '-' . $size . '.jpg';
 if (!is_file($cachePath) || filemtime($cachePath) < filemtime($sourcePath)) {
     if (!is_dir($cacheDirectory) && !mkdir($cacheDirectory, 0775, true) && !is_dir($cacheDirectory)) {
