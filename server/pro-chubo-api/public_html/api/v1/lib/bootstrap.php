@@ -183,6 +183,20 @@ function api_product_images($jancode)
     return $images;
 }
 
+function api_product_primary_image($jancode)
+{
+    if (!preg_match('/^[0-9]{13}$/', $jancode)) {
+        return array();
+    }
+    $imageBase = rtrim(api_config('image_base_url', 'https://pro-chubo.com/img_item'), '/');
+    $thumbnailBase = rtrim(api_config('thumbnail_base_url', ''), '/');
+    return array(array(
+        'url' => $imageBase . '/' . rawurlencode($jancode . '-0.jpg'),
+        'thumbnail_url' => $thumbnailBase . '?id=' . rawurlencode($jancode) . '&no=0&size=480',
+        'sort_order' => 0,
+    ));
+}
+
 function api_normalise_product($row, $includeDescription)
 {
     $row = api_utf8($row);
@@ -215,7 +229,7 @@ function api_normalise_product($row, $includeDescription)
             'class2_id' => (int) $row['class2_id'],
             'class2' => trim((string) $row['class2']),
         ),
-        'images' => api_product_images($jancode),
+        'images' => $includeDescription ? api_product_images($jancode) : api_product_primary_image($jancode),
         'videos' => array(),
         'listed_at' => trim((string) $row['date']),
     );
