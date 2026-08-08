@@ -14,13 +14,24 @@ function env_value(string $name, ?string $default = null): ?string
 
 function app_config(): array
 {
-    return [
+    $config = [
         'api_base_url' => rtrim((string) env_value('PRO_CHUBO_API_BASE_URL', ''), '/'),
         'api_key' => (string) env_value('PRO_CHUBO_API_KEY', ''),
         'store_id' => (string) env_value('PRO_CHUBO_STORE_ID', '265'),
         'cache_ttl' => max(30, (int) env_value('PRO_CHUBO_CACHE_TTL', '300')),
         'contact_url' => (string) env_value('AIRITECHNO_CONTACT_URL', '/contact/?product_id={product_id}'),
     ];
+    $localPath = AIRITECHNO_ROOT . '/config/local.php';
+    if (is_file($localPath)) {
+        $local = require $localPath;
+        if (is_array($local)) {
+            $config = array_replace($config, $local);
+        }
+    }
+    $config['api_base_url'] = rtrim((string) $config['api_base_url'], '/');
+    $config['store_id'] = (string) $config['store_id'];
+    $config['cache_ttl'] = max(30, (int) $config['cache_ttl']);
+    return $config;
 }
 
 function product_repository(): ProductRepository
