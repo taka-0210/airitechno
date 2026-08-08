@@ -92,6 +92,13 @@ function api_authorise_store($permissions, $storeId)
     }
 }
 
+function api_authorise_catalog($permissions)
+{
+    if (empty($permissions['all_stores'])) {
+        api_error(403, 'This API key cannot access the full catalog.');
+    }
+}
+
 function api_utf8($value)
 {
     if (is_array($value)) {
@@ -220,7 +227,7 @@ function api_normalise_product($row, $includeDescription)
             'status' => api_status_code($status),
             'status_label' => $status,
             'store_id' => (string) $row['shop_id'],
-            'store_name' => 'プロ厨房ヒット新居浜店',
+            'store_name' => api_store_name((string) $row['shop_id']),
             'quantity' => (int) $row['stock'],
             'shipped_at' => trim((string) $row['date_out']),
         ),
@@ -243,9 +250,29 @@ function api_normalise_product($row, $includeDescription)
     return $product;
 }
 
+function api_store_name($storeId)
+{
+    static $stores = null;
+    if ($stores === null) {
+        $stores = array();
+        $statement = api_db()->query('SELECT shop_id, shop FROM shop_tb WHERE status = 1');
+        foreach ($statement->fetchAll() as $row) {
+            $row = api_utf8($row);
+            $stores[(string) $row['shop_id']] = trim((string) $row['shop']);
+        }
+    }
+    return isset($stores[(string) $storeId]) ? $stores[(string) $storeId] : '店舗ID ' . $storeId;
+}
+
 function api_public_where($storeId, &$parameters)
 {
     $parameters[':store_id'] = (string) $storeId;
     $parameters[':public_status'] = api_euc('公開在庫');
     return 'shop_id = :store_id AND status2 = :public_status AND COALESCE(flag_close, 0) = 0';
+}
+
+function api_public_catalog_where(&$parameters)
+{
+    $parameters[':public_status'] = api_euc('公開在庫');
+    return 'status2 = :public_status AND COALESCE(flag_close, 0) = 0';
 }
