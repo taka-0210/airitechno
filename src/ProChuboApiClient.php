@@ -22,6 +22,17 @@ final class ProChuboApiClient
         return array_values(array_filter($products, 'is_array'));
     }
 
+    public function product(string $productId): array
+    {
+        $url = $this->baseUrl . '/products/' . rawurlencode($productId);
+        $decoded = json_decode($this->request($url), true, 512, JSON_THROW_ON_ERROR);
+        $product = isset($decoded['data']) && is_array($decoded['data']) ? $decoded['data'] : $decoded;
+        if (!is_array($product)) {
+            throw new RuntimeException('商品詳細APIのレスポンス形式が正しくありません。');
+        }
+        return $product;
+    }
+
     private function request(string $url): string
     {
         if (!function_exists('curl_init')) {

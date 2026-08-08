@@ -38,7 +38,7 @@ $meta = $repository->meta();
       <p class="empty">現在掲載中の商品はありません。</p>
     <?php else: ?>
       <div class="product-grid">
-        <?php foreach ($products as $product): $image = $product['images'][0]['url'] ?? ''; ?>
+        <?php foreach ($products as $product): $image = $product['images'][0]['thumbnail_url'] ?? ($product['images'][0]['url'] ?? ''); ?>
           <article class="product-card">
             <a class="product-image" href="product.php?id=<?=rawurlencode($product['id'])?>">
               <?php if ($image !== ''): ?><img src="<?=h($image)?>" alt="<?=h($product['name'])?>" loading="lazy"><?php else: ?><span>NO IMAGE</span><?php endif; ?>

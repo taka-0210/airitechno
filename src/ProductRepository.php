@@ -46,6 +46,15 @@ final class ProductRepository
 
     public function find(string $id): ?array
     {
+        if ($this->client !== null) {
+            try {
+                $product = $this->normalise($this->client->product($id));
+                $this->source = 'api';
+                return $product;
+            } catch (Throwable) {
+                // Use the cached list or local development sample below.
+            }
+        }
         foreach ($this->all() as $product) {
             if ((string) $product['id'] === $id) {
                 return $product;
