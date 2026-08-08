@@ -45,9 +45,11 @@ final class ProChuboApiClient
             CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_TIMEOUT => $this->timeoutSeconds,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             CURLOPT_HTTPHEADER => [
                 'Accept: application/json',
                 'Authorization: Bearer ' . $this->apiKey,
+                'X-API-Key: ' . $this->apiKey,
                 'User-Agent: AiritechnoProductCatalogue/1.0',
             ],
         ]);
