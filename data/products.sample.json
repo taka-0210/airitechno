@@ -1,0 +1,101 @@
+[
+  {
+    "id": "2300001273143",
+    "name": "縦型4枚扉冷凍庫（センターフリー）",
+    "manufacturer": "ホシザキ",
+    "model_number": "HF-120Z3-ML",
+    "year": 2016,
+    "condition": {"code": "C", "label": "ランクC"},
+    "dimensions_mm": {"width": 1200, "depth": 800, "height": 1890},
+    "price": {"tax_excluded": 118000, "tax_included": 129800, "currency": "JPY", "ask": false},
+    "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "images": [
+      {"url": "https://pro-chubo.com/img_item/2300001273143-0.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-1.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-2.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-3.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-4.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-5.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273143-6.jpg"}
+    ],
+    "videos": [],
+    "description": "",
+    "updated_at": "2026-08-08T17:26:18+09:00"
+  },
+  {
+    "id": "2300001273006",
+    "name": "徐水機 エアーブラスト",
+    "manufacturer": "広栄機工",
+    "model_number": "KJS-554／371",
+    "year": 2012,
+    "condition": {"code": "B", "label": "ランクB"},
+    "dimensions_mm": {"width": 2500, "depth": 1400, "height": 1650},
+    "price": {"tax_excluded": 2454546, "tax_included": 2700000, "currency": "JPY", "ask": false},
+    "inventory": {"status": "negotiating", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "images": [
+      {"url": "https://pro-chubo.com/img_item/2300001273006-0.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273006-1.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273006-2.jpg"}
+    ],
+    "videos": [],
+    "description": "送風機出力5.5kW×4台・3.7kW×1台。取扱説明書あり。",
+    "updated_at": "2026-08-08T17:18:29+09:00"
+  },
+  {
+    "id": "2300001273099",
+    "name": "縦型4枚扉冷蔵庫",
+    "manufacturer": "ダイワ",
+    "model_number": "403CD-EX",
+    "year": 2021,
+    "condition": {"code": "B", "label": "ランクB"},
+    "dimensions_mm": {"width": 1200, "depth": 830, "height": 1900},
+    "price": {"tax_excluded": 160000, "tax_included": 176000, "currency": "JPY", "ask": false},
+    "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "images": [
+      {"url": "https://pro-chubo.com/img_item/2300001273099-0.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273099-1.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273099-2.jpg"}
+    ],
+    "videos": [],
+    "description": "",
+    "updated_at": "2026-08-08T16:47:02+09:00"
+  },
+  {
+    "id": "2300001273082",
+    "name": "カラー複合機",
+    "manufacturer": "Canon",
+    "model_number": "iR-ADVDXC3926F",
+    "year": 0,
+    "condition": {"code": "B", "label": "ランクB"},
+    "dimensions_mm": {"width": 550, "depth": 650, "height": 1120},
+    "price": {"tax_excluded": 150000, "tax_included": 165000, "currency": "JPY", "ask": false},
+    "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "images": [
+      {"url": "https://pro-chubo.com/img_item/2300001273082-0.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273082-1.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273082-2.jpg"}
+    ],
+    "videos": [],
+    "description": "",
+    "updated_at": "2026-08-08T16:37:09+09:00"
+  },
+  {
+    "id": "2300001273105",
+    "name": "縦型恒温高湿庫",
+    "manufacturer": "ホシザキ",
+    "model_number": "HCR-150CA-ML",
+    "year": 2019,
+    "condition": {"code": "B", "label": "ランクB"},
+    "dimensions_mm": {"width": 1500, "depth": 800, "height": 1900},
+    "price": {"tax_excluded": 151800, "tax_included": 166980, "currency": "JPY", "ask": false},
+    "inventory": {"status": "available", "store_id": "265", "store_name": "プロ厨房ヒット新居浜店"},
+    "images": [
+      {"url": "https://pro-chubo.com/img_item/2300001273105-0.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273105-1.jpg"},
+      {"url": "https://pro-chubo.com/img_item/2300001273105-2.jpg"}
+    ],
+    "videos": [],
+    "description": "",
+    "updated_at": "2026-08-08T15:48:44+09:00"
+  }
+]
