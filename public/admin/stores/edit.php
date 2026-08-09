@@ -15,14 +15,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     try {
         $action = (string) ($_POST['_action'] ?? 'save');
-        if ($id > 0 && preg_match('/^image-(up|down|delete):(\d+)$/', $action, $matches)) {
+        if ($id > 0 && preg_match('/^image-(up|down|delete|main):(\d+)$/', $action, $matches)) {
             $imageAction = $matches[1];
             $imageId = (int) $matches[2];
             $image = $repository->findImage($id, $imageId);
             if ($image === null) {
                 throw new RuntimeException('対象の画像が見つかりません。');
             }
-            if ($imageAction === 'delete') {
+            if ($imageAction === 'main') {
+                $store['main_image'] = (string) $image['file_path'];
+                $repository->save($store, $id);
+                $cmsAuth->log((int) $user['id'], 'set_main_image', 'store', $id, (string) $image['file_path']);
+                admin_flash('メイン画像を変更しました。');
+            } elseif ($imageAction === 'delete') {
                 quarantine_store_image($id, (string) $image['file_path']);
                 $repository->deleteImage($id, $imageId);
                 if ((string) $store['main_image'] === (string) $image['file_path']) {
@@ -47,15 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input['published_at'] = $store['published_at'];
         }
         $savedId = $repository->save($input, $id > 0 ? $id : null);
-        $uploaded = store_image_upload($savedId, $_FILES['main_image_file'] ?? []);
-        if ($uploaded !== null) {
-            $input['main_image'] = $uploaded;
-            $repository->save($input, $savedId);
-        }
         $gallery = $repository->images($savedId);
         $nextOrder = count($gallery) + 1;
-        foreach (store_gallery_uploads($savedId, $_FILES['gallery_files'] ?? []) as $galleryPath) {
+        $galleryPaths = store_gallery_uploads($savedId, $_FILES['gallery_files'] ?? []);
+        foreach ($galleryPaths as $galleryPath) {
             $repository->addImage($savedId, $galleryPath, (string) ($input['name'] ?? ''), $nextOrder++);
+        }
+        if ((string) ($input['main_image'] ?? '') === '' && $galleryPaths !== []) {
+            $input['main_image'] = $galleryPaths[0];
+            $repository->save($input, $savedId);
         }
         $cmsAuth->log((int) $user['id'], $id > 0 ? 'update' : 'create', 'store', $savedId, (string) ($input['name'] ?? ''));
         admin_flash('店舗情報を保存しました。');
@@ -91,6 +96,6 @@ render_admin_header($id > 0 ? '店舗を編集' : '店舗を追加', $user);
 <section class="panel"><h2>所在地・連絡先</h2><div class="fields two">
 <label>郵便番号<input name="postal_code" value="<?= h($store['postal_code']) ?>"></label><label>都道府県<input name="prefecture" value="<?= h($store['prefecture']) ?>"></label><label>市区町村<input name="city" value="<?= h($store['city']) ?>"></label><label>町域・番地<input name="address_line" value="<?= h($store['address_line']) ?>"></label><label>建物名<input name="building" value="<?= h($store['building']) ?>"></label><label>電話番号<input name="phone" value="<?= h($store['phone']) ?>"></label><label>FAX<input name="fax" value="<?= h($store['fax']) ?>"></label><label>メール<input type="email" name="email" value="<?= h($store['email']) ?>"></label><label>営業時間<input name="business_hours" value="<?= h($store['business_hours']) ?>"></label><label>定休日<input name="holidays" value="<?= h($store['holidays']) ?>"></label>
 </div><label>対応地域<textarea name="service_area"><?= h($store['service_area']) ?></textarea></label></section>
-<section class="panel"><h2>店舗紹介</h2><div class="fields"><label>キャッチコピー<input name="catchphrase" value="<?= h($store['catchphrase']) ?>"></label><label>店舗紹介<textarea name="description" rows="7"><?= h($store['description']) ?></textarea></label><label>得意な業態・相談<textarea name="specialties"><?= h($store['specialties']) ?></textarea></label><label>対応サービス<textarea name="services"><?= h($store['services']) ?></textarea></label><label>店長・責任者<input name="manager_name" value="<?= h($store['manager_name']) ?>"></label><label>メイン画像<input type="file" name="main_image_file" accept="image/jpeg,image/png,image/webp"></label><?php if ($store['main_image'] !== ''): ?><img class="preview-image" src="<?= h(public_url($store['main_image'])) ?>" alt=""><?php endif; ?><label>店舗ギャラリー<input type="file" name="gallery_files[]" accept="image/jpeg,image/png,image/webp" multiple><small>複数の画像をまとめて選択できます。</small></label><?php if ($storeImages !== []): ?><div class="image-grid"><?php foreach ($storeImages as $index => $image): ?><article class="image-card"><img src="<?= h(public_url($image['file_path'])) ?>" alt="<?= h($image['alt_text']) ?>"><div><span><?= $index + 1 ?>枚目</span><button type="submit" name="_action" value="image-up:<?= (int) $image['id'] ?>" formnovalidate aria-label="上へ移動" <?= $index === 0 ? 'disabled' : '' ?>>↑</button><button type="submit" name="_action" value="image-down:<?= (int) $image['id'] ?>" formnovalidate aria-label="下へ移動" <?= $index === count($storeImages) - 1 ? 'disabled' : '' ?>>↓</button><button class="danger" type="submit" name="_action" value="image-delete:<?= (int) $image['id'] ?>" formnovalidate onclick="return confirm('この画像を削除しますか？')">削除</button></div></article><?php endforeach; ?></div><?php endif; ?></div></section>
+<section class="panel"><h2>店舗紹介</h2><div class="fields"><label>キャッチコピー<input name="catchphrase" value="<?= h($store['catchphrase']) ?>"></label><label>店舗紹介<textarea name="description" rows="7"><?= h($store['description']) ?></textarea></label><label>得意な業態・相談<textarea name="specialties"><?= h($store['specialties']) ?></textarea></label><label>対応サービス<textarea name="services"><?= h($store['services']) ?></textarea></label><label>店長・責任者<input name="manager_name" value="<?= h($store['manager_name']) ?>"></label><label>店舗画像<input type="file" name="gallery_files[]" accept="image/jpeg,image/png,image/webp" multiple><small>複数の画像をまとめて選択できます。登録後、一覧からメイン画像を選択してください。</small></label><?php if ($storeImages !== []): ?><div class="image-grid"><?php foreach ($storeImages as $index => $image): ?><?php $isMainImage = (string) $store['main_image'] === (string) $image['file_path']; ?><article class="image-card <?= $isMainImage ? 'is-main' : '' ?>"><div class="image-wrap"><img src="<?= h(public_url($image['file_path'])) ?>" alt="<?= h($image['alt_text']) ?>"><?php if ($isMainImage): ?><strong class="main-badge">メイン画像</strong><?php endif; ?></div><div><span><?= $index + 1 ?>枚目</span><?php if (!$isMainImage): ?><button class="secondary" type="submit" name="_action" value="image-main:<?= (int) $image['id'] ?>" formnovalidate>メインに設定</button><?php endif; ?><button type="submit" name="_action" value="image-up:<?= (int) $image['id'] ?>" formnovalidate aria-label="上へ移動" <?= $index === 0 ? 'disabled' : '' ?>>↑</button><button type="submit" name="_action" value="image-down:<?= (int) $image['id'] ?>" formnovalidate aria-label="下へ移動" <?= $index === count($storeImages) - 1 ? 'disabled' : '' ?>>↓</button><button class="danger" type="submit" name="_action" value="image-delete:<?= (int) $image['id'] ?>" formnovalidate onclick="return confirm('この画像を削除しますか？')">削除</button></div></article><?php endforeach; ?></div><?php endif; ?></div></section>
 <section class="panel"><h2>リンク・予約</h2><div class="fields two"><label>GoogleマップURL<input type="url" name="map_url" value="<?= h($store['map_url']) ?>"></label><label>LINE URL<input type="url" name="line_url" value="<?= h($store['line_url']) ?>"></label><label>店舗Webサイト<input type="url" name="website_url" value="<?= h($store['website_url']) ?>"></label><label class="check"><input type="checkbox" name="accepts_reservations" value="1" <?= $store['accepts_reservations'] ? 'checked' : '' ?>>来店予約を受け付ける</label></div><label>予約時の注意<textarea name="reservation_note"><?= h($store['reservation_note']) ?></textarea></label></section>
 <div class="actions"><button type="submit">保存する</button><?php if ($id > 0 && $store['status']==='published'): ?><a target="_blank" href="../../store.php?slug=<?= rawurlencode($store['slug']) ?>">公開ページを見る</a><?php endif; ?></div></form><?php render_admin_footer($user);
