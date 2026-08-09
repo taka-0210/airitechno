@@ -23,6 +23,56 @@ final class CmsAuth
         return true;
     }
 
+    public function hasUsers(): bool
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM cms_users')->fetchColumn() > 0;
+    }
+
+    public function createInitialAdmin(string $email, string $displayName, string $password): int
+    {
+        $email = strtolower(trim($email));
+        $displayName = trim($displayName);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('正しいメールアドレスを入力してください。');
+        }
+        if ($displayName === '') {
+            throw new InvalidArgumentException('表示名を入力してください。');
+        }
+        if (strlen($password) < 12) {
+            throw new InvalidArgumentException('パスワードは12文字以上で入力してください。');
+        }
+
+        $this->pdo->exec('BEGIN IMMEDIATE');
+        try {
+            if ($this->hasUsers()) {
+                throw new RuntimeException('初期設定はすでに完了しています。');
+            }
+            $now = date(DATE_ATOM);
+            $statement = $this->pdo->prepare(
+                "INSERT INTO cms_users (email, password_hash, display_name, role, is_active, created_at, updated_at)
+                 VALUES (:email, :password_hash, :display_name, 'system_admin', 1, :created_at, :updated_at)"
+            );
+            $statement->execute([
+                'email' => $email,
+                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                'display_name' => $displayName,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $userId = (int) $this->pdo->lastInsertId();
+            $this->log($userId, 'initial_setup', 'user', $userId);
+            $this->pdo->exec('COMMIT');
+            return $userId;
+        } catch (Throwable $exception) {
+            try {
+                $this->pdo->exec('ROLLBACK');
+            } catch (PDOException) {
+                // The transaction may already be closed by the driver.
+            }
+            throw $exception;
+        }
+    }
+
     public function user(): ?array
     {
         $userId = (int) ($_SESSION['cms_user_id'] ?? 0);

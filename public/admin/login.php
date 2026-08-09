@@ -7,7 +7,13 @@ if ($cmsAuth->user() !== null) {
     exit;
 }
 
+if (!$cmsAuth->hasUsers()) {
+    header('Location: ' . admin_url('setup.php'));
+    exit;
+}
+
 $error = '';
+$notice = isset($_GET['setup']) ? '初期設定が完了しました。設定したメールアドレスとパスワードでログインしてください。' : '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     if ($cmsAuth->attempt((string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''))) {
@@ -20,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 render_admin_header('ログイン');
 ?><section class="login-card"><p class="eyebrow">ADMINISTRATION</p><h1>管理画面ログイン</h1>
+<?php if ($notice !== ''): ?><p class="alert success"><?= h($notice) ?></p><?php endif; ?>
 <?php if ($error !== ''): ?><p class="alert error"><?= h($error) ?></p><?php endif; ?>
 <form method="post"><input type="hidden" name="_token" value="<?= h(csrf_token()) ?>">
 <label>メールアドレス<input type="email" name="email" required autocomplete="username"></label>
