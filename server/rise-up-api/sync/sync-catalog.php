@@ -5,6 +5,10 @@ $mode = isset($argv[1]) ? $argv[1] : 'delta';
 if ($mode !== 'full' && $mode !== 'delta') { fwrite(STDERR, "Usage: php sync-catalog.php [full|delta]\n"); exit(2); }
 
 $domainRoot = dirname(__DIR__);
+$configPath = $domainRoot . '/api-config.php';
+if (!is_file($configPath)) { throw new RuntimeException('API configuration was not found.'); }
+$apiConfig = require $configPath;
+if (!is_array($apiConfig)) { throw new RuntimeException('API configuration is invalid.'); }
 $cacheDirectory = $domainRoot . '/api-cache';
 $livePath = $cacheDirectory . '/catalog.sqlite';
 $previousPath = $cacheDirectory . '/catalog.previous.sqlite';
@@ -13,7 +17,9 @@ if (!is_dir($cacheDirectory) && !mkdir($cacheDirectory, 0775, true) && !is_dir($
 $lock = fopen($lockPath, 'c');
 if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) { fwrite(STDOUT, "Catalog sync is already running.\n"); exit(0); }
 
-ob_start(); require '/home/xsvx1007016/rise-up.net/public_html/rubs/cmn/config.php'; ob_end_clean();
+$kitchenConfigPath = isset($apiConfig['kitchen_config_path']) ? (string)$apiConfig['kitchen_config_path'] : $domainRoot . '/public_html/rubs/cmn/config.php';
+if (!is_file($kitchenConfigPath)) { throw new RuntimeException('Kitchen configuration was not found.'); }
+ob_start(); require $kitchenConfigPath; ob_end_clean();
 $source = new PDO(PDO_DNS, PDO_USER, PDO_PASSWORD, array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC));
 $started = microtime(true);
 try {

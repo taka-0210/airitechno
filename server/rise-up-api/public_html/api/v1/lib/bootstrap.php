@@ -1,9 +1,9 @@
 <?php
 
-define('PRO_CHUBO_PUBLIC_ROOT', dirname(dirname(dirname(__DIR__))));
-define('PRO_CHUBO_DOMAIN_ROOT', dirname(PRO_CHUBO_PUBLIC_ROOT));
+define('RISE_UP_PUBLIC_ROOT', dirname(dirname(dirname(__DIR__))));
+define('RISE_UP_DOMAIN_ROOT', dirname(RISE_UP_PUBLIC_ROOT));
 
-$apiConfigPath = PRO_CHUBO_DOMAIN_ROOT . '/api-config.php';
+$apiConfigPath = RISE_UP_DOMAIN_ROOT . '/api-config.php';
 if (!is_file($apiConfigPath)) {
     api_error(503, 'API is not configured.');
 }
@@ -22,7 +22,7 @@ function api_db()
 {
     static $db = null;
     if ($db === null) {
-        $path = api_config('catalog_database_path', PRO_CHUBO_DOMAIN_ROOT . '/api-cache/catalog.sqlite');
+        $path = api_config('catalog_database_path', RISE_UP_DOMAIN_ROOT . '/api-cache/catalog.sqlite');
         if (!is_file($path)) {
             api_error(503, 'Catalog snapshot is not available.');
         }
@@ -192,22 +192,41 @@ function api_hyper_public_where($storeId, &$parameters)
 function api_hyper_images($row, $includeAll)
 {
     $count=max(0,(int)$row['count_photo']); if($count===0)return array(); if(!$includeAll)$count=1;
-    $jancode=(string)$row['jancode']; $common=(int)$row['cmn_photo_no']; $base='https://rise-up.net/rubs/img/'.($common>0?'item_cmn':'item'); $key=$common>0?(string)$common:$jancode; $thumb=rtrim(api_config('thumbnail_base_url',''),'/'); $images=array();
-    for($no=0;$no<$count;$no++)$images[]=array('url'=>$base.'/'.rawurlencode($key.'-'.$no.'.jpg'),'thumbnail_url'=>$thumb.'?id='.rawurlencode($jancode).'&no='.$no.'&size=480'.($common>0?'&common='.$common:''),'sort_order'=>$no);
+    $jancode=(string)$row['jancode']; $common=(int)$row['cmn_photo_no']; $type=$common>0?'item_cmn':'item'; $base=rtrim(api_config('source_image_base_url','https://rise-up.net/rubs/img'),'/').'/'.$type; $directory=rtrim(api_config('source_image_directory',RISE_UP_PUBLIC_ROOT.'/rubs/img'),'/').'/'.$type; $key=$common>0?(string)$common:$jancode; $thumb=rtrim(api_config('thumbnail_base_url',''),'/'); $images=array();
+    for($no=0;$no<$count;$no++){
+        $matches=glob($directory.'/'.$key.'-'.$no.'.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',GLOB_BRACE);
+        if(!is_array($matches)||!isset($matches[0])||!is_file($matches[0]))continue;
+        $images[]=array('url'=>$base.'/'.rawurlencode(basename($matches[0])),'thumbnail_url'=>$thumb.'?id='.rawurlencode($jancode).'&no='.$no.'&size=480'.($common>0?'&common='.$common:''),'sort_order'=>$no);
+    }
     return $images;
+}
+
+function api_hyper_videos($row)
+{
+    $configured = trim(isset($row['movie_url']) ? (string) $row['movie_url'] : '');
+    if ($configured !== '') {
+        return array(array('url' => $configured));
+    }
+    $jancode = isset($row['jancode']) ? (string) $row['jancode'] : (isset($row['id']) ? (string) $row['id'] : '');
+    if (!preg_match('/^[0-9]{13}$/', $jancode)) {
+        return array();
+    }
+    $directory = rtrim(api_config('video_directory', RISE_UP_PUBLIC_ROOT . '/rubs/img/item_movie'), '/');
+    $base = rtrim(api_config('video_base_url', 'https://rise-up.net/rubs/img/item_movie'), '/');
+    return is_file($directory . '/' . $jancode . '.mp4') ? array(array('url' => $base . '/' . $jancode . '.mp4')) : array();
 }
 
 function api_normalise_snapshot_product($row, $includeDescription)
 {
     $price=(int)$row['price_sales'];$status=api_hyper_status_code($row['status_no']);$name=trim((string)$row['name']);if(trim((string)$row['supple'])!=='')$name.=' '.trim((string)$row['supple']);
-    $product=array('id'=>(string)$row['id'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_label']),'store_id'=>(string)$row['store_id'],'store_name'=>trim((string)$row['store_name']),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_id'],'class2_id'=>(int)$row['class2_id'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images(array('jancode'=>$row['id'],'count_photo'=>$row['count_photo'],'cmn_photo_no'=>$row['cmn_photo_no']),$includeDescription),'videos'=>trim((string)$row['movie_url'])!==''?array(array('url'=>trim((string)$row['movie_url']))):array(),'listed_at'=>trim((string)$row['datetime_stock']));
+    $product=array('id'=>(string)$row['id'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_label']),'store_id'=>(string)$row['store_id'],'store_name'=>trim((string)$row['store_name']),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_id'],'class2_id'=>(int)$row['class2_id'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images(array('jancode'=>$row['id'],'count_photo'=>$row['count_photo'],'cmn_photo_no'=>$row['cmn_photo_no']),$includeDescription),'videos'=>api_hyper_videos($row),'listed_at'=>trim((string)$row['datetime_stock']));
     if($includeDescription){$product['description']=trim((string)$row['comment']);$product['details']=trim((string)$row['details']);}return $product;
 }
 
 function api_normalise_hyper_product($row, $includeDescription)
 {
     $price=(int)$row['price_sales']; $status=api_hyper_status_code($row['status_no']); $name=trim((string)$row['name']); if(trim((string)$row['supple'])!=='')$name.=' '.trim((string)$row['supple']);
-    $product=array('id'=>(string)$row['jancode'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_name']),'store_id'=>(string)$row['shop_id'],'store_name'=>trim(strip_tags((string)$row['shop_name'])),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_no'],'class2_id'=>(int)$row['class2_no'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images($row,$includeDescription),'videos'=>trim((string)$row['movie_url'])!==''?array(array('url'=>trim((string)$row['movie_url']))):array(),'listed_at'=>trim((string)$row['datetime_stock']));
+    $product=array('id'=>(string)$row['jancode'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_name']),'store_id'=>(string)$row['shop_id'],'store_name'=>trim(strip_tags((string)$row['shop_name'])),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_no'],'class2_id'=>(int)$row['class2_no'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images($row,$includeDescription),'videos'=>api_hyper_videos($row),'listed_at'=>trim((string)$row['datetime_stock']));
     if($includeDescription){$product['description']=trim((string)$row['comment']);$product['details']=trim((string)$row['details']);}
     return $product;
 }
@@ -217,14 +236,15 @@ function api_product_images($jancode)
     if (!preg_match('/^[0-9]{13}$/', $jancode)) {
         return array();
     }
-    $files = glob(PRO_CHUBO_PUBLIC_ROOT . '/img_item/' . $jancode . '-*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
+    $sourceDirectory = rtrim(api_config('source_image_directory', RISE_UP_PUBLIC_ROOT . '/rubs/img'), '/') . '/item';
+    $files = glob($sourceDirectory . '/' . $jancode . '-*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
     if (!is_array($files)) {
         return array();
     }
     natsort($files);
     $images = array();
     $thumbnailBase = rtrim(api_config('thumbnail_base_url', ''), '/');
-    $imageBase = rtrim(api_config('image_base_url', 'https://pro-chubo.com/img_item'), '/');
+    $imageBase = rtrim(api_config('source_image_base_url', 'https://rise-up.net/rubs/img'), '/') . '/item';
     foreach (array_values($files) as $file) {
         $filename = basename($file);
         if (!preg_match('/^' . preg_quote($jancode, '/') . '-([0-9]+)\.(jpe?g|png|webp)$/i', $filename, $matches)) {
@@ -245,7 +265,7 @@ function api_product_primary_image($jancode)
     if (!preg_match('/^[0-9]{13}$/', $jancode)) {
         return array();
     }
-    $imageBase = rtrim(api_config('image_base_url', 'https://pro-chubo.com/img_item'), '/');
+    $imageBase = rtrim(api_config('source_image_base_url', 'https://rise-up.net/rubs/img'), '/') . '/item';
     $thumbnailBase = rtrim(api_config('thumbnail_base_url', ''), '/');
     return array(array(
         'url' => $imageBase . '/' . rawurlencode($jancode . '-0.jpg'),

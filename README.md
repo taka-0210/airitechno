@@ -20,7 +20,7 @@ http://localhost/airitechno/public/
 環境変数をWebサーバー側へ設定します。APIキーをソースやJavaScriptへ記載しないでください。
 
 ```text
-PRO_CHUBO_API_BASE_URL=https://pro-chubo.com/api/v1
+PRO_CHUBO_API_BASE_URL=https://rise-up.net/api/v1
 PRO_CHUBO_API_KEY=発行されたAPIキー
 PRO_CHUBO_STORE_ID=265
 ```
@@ -34,9 +34,9 @@ Authorization: Bearer {API key}
 
 レスポンスは `data` 配列、または商品配列そのものを受け付けます。
 
-## pro-chubo.com API
+## 厨房君商品API
 
-`server/pro-chubo-api/` に、pro-chubo.comへ配置するPHP 5.4互換のAPIパッケージがあります。
+`server/rise-up-api/` に、厨房君と同じ`rise-up.net`へ配置するPHP 7.4互換の商品APIパッケージがあります。
 
 - 大分類・中分類と商品件数
 - 24件単位の商品一覧（最大60件）
@@ -45,4 +45,4 @@ Authorization: Bearer {API key}
 - ETag・HTTPキャッシュ
 - キャッシュ付き一覧用サムネイル
 
-本番サーバーへ配置する前に、`server/pro-chubo-api/config/api-config.example.php` を参考に、公開領域外へAPI設定を作成します。
+本番サーバーへ配置する前に、`server/rise-up-api/config/api-config.example.php`を参考に、公開領域外へAPI設定を作成します。新APIの配置と検証が完了するまでは、稼働中サイトの接続先を変更しません。

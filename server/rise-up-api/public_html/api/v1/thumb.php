@@ -13,7 +13,7 @@ if (!preg_match('/^[0-9]{13}$/', $jancode) || $number < 0 || $number > 30) {
     exit;
 }
 
-$sourceRoot = '/home/xsvx1007016/rise-up.net/public_html/rubs/img/' . ($common > 0 ? 'item_cmn/' : 'item/');
+$sourceRoot = rtrim(api_config('source_image_directory', RISE_UP_PUBLIC_ROOT . '/rubs/img'), '/') . '/' . ($common > 0 ? 'item_cmn/' : 'item/');
 $sourceId = $common > 0 ? (string) $common : $jancode;
 $matches = glob($sourceRoot . $sourceId . '-' . $number . '.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
 if (!is_array($matches) || !isset($matches[0]) || !is_file($matches[0])) {
@@ -27,7 +27,7 @@ if (!$imageInfo || $imageInfo[0] < 1 || $imageInfo[1] < 1) {
     exit;
 }
 
-$cacheRoot = rtrim(api_config('cache_directory', PRO_CHUBO_DOMAIN_ROOT . '/api-cache'), '/');
+$cacheRoot = rtrim(api_config('cache_directory', RISE_UP_DOMAIN_ROOT . '/api-cache'), '/');
 $cacheDirectory = $cacheRoot . '/thumbnails/' . ($common > 0 ? 'common-' . $common : $jancode);
 $cachePath = $cacheDirectory . '/' . $number . '-' . $size . '.jpg';
 if (!is_file($cachePath) || filemtime($cachePath) < filemtime($sourcePath)) {

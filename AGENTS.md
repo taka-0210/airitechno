@@ -17,7 +17,7 @@
 ## Project-specific configuration
 
 - Application: lightweight PHP product catalogue for プロ厨房ヒット新居浜店 / 株式会社アイリテクノ.
-- Product source: pro-chubo.com API, store ID `265`.
+- Product source: rise-up.netの厨房君商品API（移設準備中）、store ID `265`. 新APIの本番確認完了までは稼働中のpro-chubo.com APIを継続利用する。
 - Validation: run PHP syntax checks for every changed PHP file and `git diff --check`.
 - Local URL: `http://localhost/airitechno/public/`.
 - Demo URL: N/A.
