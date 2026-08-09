@@ -352,3 +352,5 @@
 3. CMSコンテンツモデル・入力項目定義
 4. 店舗ページの共通テンプレート
 5. 既存URLから新URLへのリダイレクト表
+
+CMS要件の初版は `docs/cms-requirements.md`、既存データの選別・移行方針は `docs/legacy-content-migration.md` に定義する。
