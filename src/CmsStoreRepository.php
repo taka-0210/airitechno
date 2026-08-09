@@ -42,6 +42,32 @@ final class CmsStoreRepository
         return is_array($store) ? $store : null;
     }
 
+    public function images(int $storeId): array
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM cms_store_images WHERE store_id = :store_id ORDER BY sort_order, id');
+        $statement->execute(['store_id' => $storeId]);
+        return $statement->fetchAll();
+    }
+
+    public function addImage(int $storeId, string $filePath, string $altText = '', int $sortOrder = 0, ?string $sourceUrl = null): int
+    {
+        $now = date(DATE_ATOM);
+        $statement = $this->pdo->prepare(
+            'INSERT INTO cms_store_images (store_id, file_path, alt_text, sort_order, source_url, created_at, updated_at)
+             VALUES (:store_id, :file_path, :alt_text, :sort_order, :source_url, :created_at, :updated_at)'
+        );
+        $statement->execute([
+            'store_id' => $storeId,
+            'file_path' => $filePath,
+            'alt_text' => trim($altText),
+            'sort_order' => $sortOrder,
+            'source_url' => $sourceUrl,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        return (int) $this->pdo->lastInsertId();
+    }
+
     public function save(array $input, ?int $id = null): int
     {
         $now = date(DATE_ATOM);

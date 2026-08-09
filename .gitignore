@@ -4,6 +4,7 @@
 !/storage/cache/.gitkeep
 /storage/cms/*
 !/storage/cms/.gitkeep
+/storage/quarantine/
 /public/uploads/*
 !/public/uploads/.gitkeep
 *.log

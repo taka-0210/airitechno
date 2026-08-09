@@ -89,6 +89,29 @@ function store_image_upload(int $storeId, array $file): ?string
     return $relativeDirectory . '/' . $filename;
 }
 
+function store_gallery_uploads(int $storeId, array $files): array
+{
+    $saved = [];
+    $names = $files['name'] ?? [];
+    if (!is_array($names)) {
+        return $saved;
+    }
+    foreach (array_keys($names) as $index) {
+        $file = [
+            'name' => $files['name'][$index] ?? '',
+            'type' => $files['type'][$index] ?? '',
+            'tmp_name' => $files['tmp_name'][$index] ?? '',
+            'error' => $files['error'][$index] ?? UPLOAD_ERR_NO_FILE,
+            'size' => $files['size'][$index] ?? 0,
+        ];
+        $path = store_image_upload($storeId, $file);
+        if ($path !== null) {
+            $saved[] = $path;
+        }
+    }
+    return $saved;
+}
+
 function render_admin_header(string $title, ?array $user = null): void
 {
     ?><!doctype html>

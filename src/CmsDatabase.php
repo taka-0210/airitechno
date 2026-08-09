@@ -102,12 +102,26 @@ CREATE TABLE IF NOT EXISTS cms_staff_directory (
     updated_at TEXT NOT NULL,
     FOREIGN KEY (store_id) REFERENCES cms_stores(id)
 );
+
+CREATE TABLE IF NOT EXISTS cms_store_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    store_id INTEGER NOT NULL,
+    file_path TEXT NOT NULL,
+    alt_text TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    source_url TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (store_id) REFERENCES cms_stores(id) ON DELETE CASCADE
+);
 SQL);
 
         $this->addColumnIfMissing('cms_users', 'store_id', 'INTEGER');
         $this->addColumnIfMissing('cms_stores', 'manager_staff_id', 'TEXT');
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_users_store_id ON cms_users(store_id)');
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_staff_store_id ON cms_staff_directory(store_id)');
+        $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_store_images_store_id ON cms_store_images(store_id)');
+        $this->pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_cms_store_images_source_url ON cms_store_images(source_url) WHERE source_url IS NOT NULL');
     }
 
     private function addColumnIfMissing(string $table, string $column, string $definition): void
