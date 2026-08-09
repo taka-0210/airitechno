@@ -80,7 +80,7 @@ final class CmsAuth
             return null;
         }
 
-        $statement = $this->pdo->prepare('SELECT id, email, display_name, role, kitchen_staff_id, store_id FROM cms_users WHERE id = :id AND is_active = 1');
+        $statement = $this->pdo->prepare("SELECT id, email, display_name, role, store_id FROM cms_users WHERE id = :id AND is_active = 1 AND role IN ('system_admin', 'store_admin')");
         $statement->execute(['id' => $userId]);
         $user = $statement->fetch();
         return is_array($user) ? $user : null;

@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS cms_users (
     password_hash TEXT NOT NULL,
     display_name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'system_admin',
-    kitchen_staff_id TEXT,
     store_id INTEGER,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
@@ -105,7 +104,6 @@ CREATE TABLE IF NOT EXISTS cms_staff_directory (
 );
 SQL);
 
-        $this->addColumnIfMissing('cms_users', 'kitchen_staff_id', 'TEXT');
         $this->addColumnIfMissing('cms_users', 'store_id', 'INTEGER');
         $this->addColumnIfMissing('cms_stores', 'manager_staff_id', 'TEXT');
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_users_store_id ON cms_users(store_id)');
