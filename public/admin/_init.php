@@ -112,6 +112,25 @@ function store_gallery_uploads(int $storeId, array $files): array
     return $saved;
 }
 
+function quarantine_store_image(int $storeId, string $relativePath): void
+{
+    $expectedDirectory = realpath(dirname(__DIR__) . '/uploads/stores/' . $storeId);
+    $sourcePath = realpath(dirname(__DIR__) . '/' . ltrim($relativePath, '/'));
+    if ($expectedDirectory === false || $sourcePath === false || !str_starts_with($sourcePath, $expectedDirectory . DIRECTORY_SEPARATOR)) {
+        throw new RuntimeException('画像ファイルの保存場所を確認できません。');
+    }
+
+    $quarantineDirectory = AIRITECHNO_ROOT . '/storage/quarantine/store-images/' . $storeId;
+    if (!is_dir($quarantineDirectory) && !mkdir($quarantineDirectory, 0770, true) && !is_dir($quarantineDirectory)) {
+        throw new RuntimeException('画像の隔離先を作成できません。');
+    }
+    $extension = strtolower((string) pathinfo($sourcePath, PATHINFO_EXTENSION));
+    $targetPath = $quarantineDirectory . '/' . date('YmdHis') . '-' . bin2hex(random_bytes(8)) . ($extension !== '' ? '.' . $extension : '');
+    if (!rename($sourcePath, $targetPath)) {
+        throw new RuntimeException('画像を公開領域から移動できませんでした。');
+    }
+}
+
 function render_admin_header(string $title, ?array $user = null): void
 {
     ?><!doctype html>

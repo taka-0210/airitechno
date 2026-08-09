@@ -68,6 +68,58 @@ final class CmsStoreRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+    public function findImage(int $storeId, int $imageId): ?array
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM cms_store_images WHERE id = :id AND store_id = :store_id');
+        $statement->execute(['id' => $imageId, 'store_id' => $storeId]);
+        $image = $statement->fetch();
+        return is_array($image) ? $image : null;
+    }
+
+    public function moveImage(int $storeId, int $imageId, string $direction): bool
+    {
+        $images = $this->images($storeId);
+        $currentIndex = null;
+        foreach ($images as $index => $image) {
+            if ((int) $image['id'] === $imageId) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+        if ($currentIndex === null) {
+            return false;
+        }
+        $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+        if (!isset($images[$targetIndex])) {
+            return false;
+        }
+        [$images[$currentIndex], $images[$targetIndex]] = [$images[$targetIndex], $images[$currentIndex]];
+
+        $this->pdo->beginTransaction();
+        try {
+            $statement = $this->pdo->prepare('UPDATE cms_store_images SET sort_order = :sort_order, updated_at = :updated_at WHERE id = :id');
+            foreach ($images as $index => $image) {
+                $statement->execute([
+                    'sort_order' => $index + 1,
+                    'updated_at' => date(DATE_ATOM),
+                    'id' => (int) $image['id'],
+                ]);
+            }
+            $this->pdo->commit();
+            return true;
+        } catch (Throwable $exception) {
+            $this->pdo->rollBack();
+            throw $exception;
+        }
+    }
+
+    public function deleteImage(int $storeId, int $imageId): bool
+    {
+        $statement = $this->pdo->prepare('DELETE FROM cms_store_images WHERE id = :id AND store_id = :store_id');
+        $statement->execute(['id' => $imageId, 'store_id' => $storeId]);
+        return $statement->rowCount() === 1;
+    }
+
     public function save(array $input, ?int $id = null): int
     {
         $now = date(DATE_ATOM);
