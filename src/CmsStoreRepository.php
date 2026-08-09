@@ -42,6 +42,14 @@ final class CmsStoreRepository
         return is_array($store) ? $store : null;
     }
 
+    public function findBySlug(string $slug): ?array
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM cms_stores WHERE slug = :slug');
+        $statement->execute(['slug' => $slug]);
+        $store = $statement->fetch();
+        return is_array($store) ? $store : null;
+    }
+
     public function images(int $storeId): array
     {
         $statement = $this->pdo->prepare('SELECT * FROM cms_store_images WHERE store_id = :store_id ORDER BY sort_order, id');

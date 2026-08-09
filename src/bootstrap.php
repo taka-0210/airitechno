@@ -26,6 +26,7 @@ function app_config(): array
         'cms_database_path' => (string) env_value('AIRITECHNO_CMS_DATABASE_PATH', AIRITECHNO_ROOT . '/storage/cms/cms.sqlite'),
         'public_base_url' => rtrim((string) env_value('AIRITECHNO_PUBLIC_BASE_URL', '/airitechno/public'), '/'),
         'reservation_url' => (string) env_value('AIRITECHNO_RESERVATION_URL', ''),
+        'consultation_url' => (string) env_value('AIRITECHNO_CONSULTATION_URL', ''),
     ];
     $localPath = AIRITECHNO_ROOT . '/config/local.php';
     if (is_file($localPath)) {
