@@ -45,4 +45,4 @@ Authorization: Bearer {API key}
 - ETag・HTTPキャッシュ
 - キャッシュ付き一覧用サムネイル
 
-本番サーバーへ配置する前に、`server/rise-up-api/config/api-config.example.php`を参考に、公開領域外へAPI設定を作成します。新APIの配置と検証が完了するまでは、稼働中サイトの接続先を変更しません。
+`rise-up.net`へのAPI配置と初回全件同期は2026年8月10日に完了しています。`server/rise-up-api/config/api-config.example.php`は再構築時の参考用で、実環境の設定とAPIキーは公開領域外・Git管理外で保持します。切替期間中は`pro-chubo.com`の旧APIを停止しません。
