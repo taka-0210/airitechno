@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS cms_users (
     password_hash TEXT NOT NULL,
     display_name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'system_admin',
+    kitchen_staff_id TEXT,
+    store_id INTEGER,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -62,6 +64,7 @@ CREATE TABLE IF NOT EXISTS cms_stores (
     specialties TEXT NOT NULL DEFAULT '',
     services TEXT NOT NULL DEFAULT '',
     manager_name TEXT NOT NULL DEFAULT '',
+    manager_staff_id TEXT,
     map_url TEXT NOT NULL DEFAULT '',
     line_url TEXT NOT NULL DEFAULT '',
     website_url TEXT NOT NULL DEFAULT '',
@@ -84,6 +87,39 @@ CREATE TABLE IF NOT EXISTS cms_audit_logs (
     created_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cms_users(id)
 );
+
+CREATE TABLE IF NOT EXISTS cms_staff_directory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kitchen_staff_id TEXT NOT NULL UNIQUE,
+    store_id INTEGER,
+    display_name TEXT NOT NULL,
+    job_title TEXT NOT NULL DEFAULT '',
+    profile TEXT NOT NULL DEFAULT '',
+    photo_path TEXT NOT NULL DEFAULT '',
+    web_publishable INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    synced_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (store_id) REFERENCES cms_stores(id)
+);
 SQL);
+
+        $this->addColumnIfMissing('cms_users', 'kitchen_staff_id', 'TEXT');
+        $this->addColumnIfMissing('cms_users', 'store_id', 'INTEGER');
+        $this->addColumnIfMissing('cms_stores', 'manager_staff_id', 'TEXT');
+        $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_users_store_id ON cms_users(store_id)');
+        $this->pdo->exec('CREATE INDEX IF NOT EXISTS idx_cms_staff_store_id ON cms_staff_directory(store_id)');
+    }
+
+    private function addColumnIfMissing(string $table, string $column, string $definition): void
+    {
+        $columns = $this->pdo->query('PRAGMA table_info(' . $table . ')')->fetchAll();
+        foreach ($columns as $existing) {
+            if ((string) $existing['name'] === $column) {
+                return;
+            }
+        }
+        $this->pdo->exec('ALTER TABLE ' . $table . ' ADD COLUMN ' . $column . ' ' . $definition);
     }
 }

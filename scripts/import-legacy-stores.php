@@ -78,6 +78,7 @@ foreach ($stores as $legacy) {
         'specialties' => (string) ($current['specialties'] ?? ''),
         'services' => (string) ($legacy['hinmoku'] ?? ''),
         'manager_name' => (string) ($current['manager_name'] ?? ''),
+        'manager_staff_id' => (string) ($current['manager_staff_id'] ?? ''),
         'map_url' => extract_iframe_url((string) ($legacy['google_map'] ?? '')),
         'line_url' => extract_anchor_url((string) ($legacy['line_btn'] ?? '')),
         'website_url' => (string) ($current['website_url'] ?? ''),

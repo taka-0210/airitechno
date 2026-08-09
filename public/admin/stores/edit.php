@@ -41,7 +41,7 @@ $store = array_replace([
     'id' => 0, 'kitchen_store_id' => '', 'name' => '', 'slug' => '', 'store_type' => 'fc', 'status' => 'draft',
     'postal_code' => '', 'prefecture' => '', 'city' => '', 'address_line' => '', 'building' => '', 'phone' => '',
     'fax' => '', 'email' => '', 'business_hours' => '', 'holidays' => '', 'service_area' => '', 'catchphrase' => '',
-    'description' => '', 'specialties' => '', 'services' => '', 'manager_name' => '', 'map_url' => '', 'line_url' => '',
+    'description' => '', 'specialties' => '', 'services' => '', 'manager_name' => '', 'manager_staff_id' => '', 'map_url' => '', 'line_url' => '',
     'website_url' => '', 'main_image' => '', 'accepts_reservations' => 0, 'reservation_note' => '', 'sort_order' => 0,
 ], $store ?? []);
 

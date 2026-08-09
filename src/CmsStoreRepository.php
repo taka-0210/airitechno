@@ -7,7 +7,7 @@ final class CmsStoreRepository
         'kitchen_store_id', 'name', 'slug', 'store_type', 'status', 'postal_code',
         'prefecture', 'city', 'address_line', 'building', 'phone', 'fax', 'email',
         'business_hours', 'holidays', 'service_area', 'catchphrase', 'description',
-        'specialties', 'services', 'manager_name', 'map_url', 'line_url', 'website_url',
+        'specialties', 'services', 'manager_name', 'manager_staff_id', 'map_url', 'line_url', 'website_url',
         'main_image', 'accepts_reservations', 'reservation_note', 'sort_order',
     ];
 
