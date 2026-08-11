@@ -216,10 +216,28 @@ function api_hyper_videos($row)
     return is_file($directory . '/' . $jancode . '.mp4') ? array(array('url' => $base . '/' . $jancode . '.mp4')) : array();
 }
 
+function api_warranty_period_label($value)
+{
+    $value=trim((string)$value);if($value===''||$value==='0'||$value==='---')return '';
+    $labels=array('1'=>'初期動作','2'=>'2週間','3'=>'1ヶ月','4'=>'2ヶ月','5'=>'3ヶ月','6'=>'4ヶ月','7'=>'5ヶ月','8'=>'6ヶ月','initial'=>'初期動作','2_weeks'=>'2週間','1_month'=>'1ヶ月','2_months'=>'2ヶ月','3_months'=>'3ヶ月','4_months'=>'4ヶ月','5_months'=>'5ヶ月','6_months'=>'6ヶ月');
+    return isset($labels[$value])?$labels[$value]:$value;
+}
+
+function api_warranty($row)
+{
+    $enabled=array_key_exists('warranty_enabled',$row)&&$row['warranty_enabled']!==null?(bool)$row['warranty_enabled']:null;
+    $special=api_warranty_period_label(isset($row['warranty_special_period'])?$row['warranty_special_period']:'');
+    $label='';
+    if($enabled===false)$label='初期動作';
+    elseif($enabled===true&&$special!=='')$label=$special;
+    elseif($enabled===true){$rank=trim(isset($row['rank_name'])?(string)$row['rank_name']:'');$defaults=array('新品'=>'12ヶ月','新品B級'=>'12ヶ月','未使用品'=>'12ヶ月','新品現品'=>'12ヶ月','特A'=>'6ヶ月','A'=>'6ヶ月','B'=>'6ヶ月','C'=>'3ヶ月','D'=>'10日');if(isset($defaults[$rank]))$label=$defaults[$rank];}
+    return array('enabled'=>$enabled,'special_period'=>$special,'label'=>$label);
+}
+
 function api_normalise_snapshot_product($row, $includeDescription)
 {
     $price=(int)$row['price_sales'];$status=api_hyper_status_code($row['status_no']);$name=trim((string)$row['name']);if(trim((string)$row['supple'])!=='')$name.=' '.trim((string)$row['supple']);
-    $product=array('id'=>(string)$row['id'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_label']),'store_id'=>(string)$row['store_id'],'store_name'=>trim((string)$row['store_name']),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_id'],'class2_id'=>(int)$row['class2_id'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images(array('jancode'=>$row['id'],'count_photo'=>$row['count_photo'],'cmn_photo_no'=>$row['cmn_photo_no']),$includeDescription),'videos'=>api_hyper_videos($row),'listed_at'=>trim((string)$row['datetime_stock']));
+    $product=array('id'=>(string)$row['id'],'name'=>$name,'manufacturer'=>trim((string)$row['maker']),'model_number'=>trim((string)$row['model']),'year'=>(int)$row['year'],'condition'=>array('code'=>(string)$row['rank_no'],'label'=>trim((string)$row['rank_name'])),'warranty'=>api_warranty($row),'dimensions_mm'=>array('width'=>(int)$row['size_w'],'depth'=>(int)$row['size_d'],'height'=>(int)$row['size_h']),'price'=>array('tax_excluded'=>(int)round($price/1.1),'tax_included'=>$price,'currency'=>'JPY','ask'=>!empty($row['flag_ask_price'])),'inventory'=>array('status'=>$status,'status_label'=>trim((string)$row['status_label']),'store_id'=>(string)$row['store_id'],'store_name'=>trim((string)$row['store_name']),'quantity'=>1,'shipped_at'=>trim((string)$row['date_ship'])),'category'=>array('class1'=>trim((string)$row['class1_name']),'class1_id'=>(int)$row['class1_id'],'class2_id'=>(int)$row['class2_id'],'class2'=>trim((string)$row['class2_name'])),'images'=>api_hyper_images(array('jancode'=>$row['id'],'count_photo'=>$row['count_photo'],'cmn_photo_no'=>$row['cmn_photo_no']),$includeDescription),'videos'=>api_hyper_videos($row),'listed_at'=>trim((string)$row['datetime_stock']));
     if($includeDescription){$product['description']=trim((string)$row['comment']);$product['details']=trim((string)$row['details']);}return $product;
 }
 
