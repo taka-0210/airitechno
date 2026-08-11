@@ -1,5 +1,8 @@
 <?php
 return array(
+    // Usually detected from tblItemData automatically. Set these only when the kitchen schema uses different values.
+    // 'web_publish_column' => 'flag_web',
+    // 'web_publish_values' => array('1'),
     'kitchen_config_path' => dirname(__FILE__) . '/public_html/rubs/cmn/config.php',
     'api_keys' => array(
         // hash('sha256', 'replace-with-a-store-api-key') => array('stores' => array('265')),

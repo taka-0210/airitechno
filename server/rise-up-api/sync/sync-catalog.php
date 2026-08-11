@@ -36,15 +36,36 @@ function source_from()
 {
     return ' FROM tblItemData d INNER JOIN mstItemModel m ON d.item_model_no=m.item_model_no INNER JOIN mstItemClass1 c1 ON m.class1_no=c1.class1_no INNER JOIN mstItemClass2 c2 ON m.class2_no=c2.class2_no LEFT JOIN mstShop s ON d.shop_id=s.shop_id LEFT JOIN mstItemRank r ON d.rank_no=r.rank_no LEFT JOIN mstItemStatus st ON d.status_no=st.status_no';
 }
-function source_where()
+function source_columns($source)
 {
-    return " WHERE d.status_inside_no=1 AND d.status_no<>7 AND d.jancode REGEXP '^[0-9]{13}$' AND (d.status_no<>2 OR (d.date_ship IS NOT NULL AND d.date_ship>=DATE_SUB(CURDATE(),INTERVAL 30 DAY)))";
+    static $rows=null;if($rows===null)$rows=$source->query('SHOW FULL COLUMNS FROM tblItemData')->fetchAll();return $rows;
+}
+function source_web_publish_column($source)
+{
+    global $apiConfig;
+    if(!empty($apiConfig['web_publish_column']))return (string)$apiConfig['web_publish_column'];
+    $candidates=array('flag_web','web_flag','web_flg','flag_web_publish','web_publish_flag','status_web_no','web_status_no','publish_web','display_web','flag_display_web');
+    foreach(source_columns($source) as $row){$field=(string)$row['Field'];$key=strtolower($field);$comment=preg_replace('/\s+/u','',trim((string)$row['Comment']));
+        if(in_array($key,$candidates,true)||strpos($comment,'Web掲載')!==false||strpos($comment,'WEB掲載')!==false)return $field;
+    }
+    throw new RuntimeException('The tblItemData Web publication column could not be detected. Set web_publish_column in api-config.php.');
+}
+function source_web_publish_condition($source)
+{
+    global $apiConfig;$field=source_web_publish_column($source);$quoted='d.`'.str_replace('`','``',$field).'`';
+    $values=isset($apiConfig['web_publish_values'])?(array)$apiConfig['web_publish_values']:array('1','掲載する','掲載','公開','公開する');
+    $escaped=array();foreach($values as $value)$escaped[]=$source->quote((string)$value);
+    return 'CAST('.$quoted.' AS CHAR) IN ('.implode(',',$escaped).')';
+}
+function source_where($source)
+{
+    return " WHERE d.status_inside_no=1 AND ".source_web_publish_condition($source)." AND d.status_no<>7 AND d.jancode REGEXP '^[0-9]{13}$' AND (d.status_no<>2 OR (d.date_ship IS NOT NULL AND d.date_ship>=DATE_SUB(CURDATE(),INTERVAL 30 DAY)))";
 }
 function source_warranty_columns($source)
 {
     static $columns = null;
     if ($columns !== null) return $columns;
-    $columns=array('enabled'=>null,'special'=>null);$rows=$source->query('SHOW FULL COLUMNS FROM tblItemData')->fetchAll();
+    $columns=array('enabled'=>null,'special'=>null);$rows=source_columns($source);
     $enabledCandidates=array('flag_warranty','warranty_flag','flag_guarantee','guarantee_flag','flag_hosyo','hosyo_flag','flag_hosho','hosho_flag');
     $specialCandidates=array('special_warranty_period','warranty_special_period','warranty_period','guarantee_period','special_guarantee_period','hosyo_period','hosho_period');
     foreach($rows as $row){$field=(string)$row['Field'];$key=strtolower($field);$comment=trim((string)$row['Comment']);
@@ -105,12 +126,12 @@ function source_time($source)
 function full_sync($source,$livePath,$previousPath,$cacheDirectory)
 {
     $cursor=source_time($source);$temporary=$cacheDirectory.'/catalog.build-'.getmypid().'.sqlite';if(is_file($temporary))unlink($temporary);$db=open_snapshot($temporary);$db->exec('PRAGMA journal_mode=OFF');$db->exec('PRAGMA synchronous=OFF');create_schema($db);list($insert,$columns)=insert_statement($db);
-    $query=$source->query(source_select($source).source_where().' ORDER BY d.item_data_no');$db->beginTransaction();while($row=$query->fetch())insert_row($insert,$columns,$row);set_metadata($db,'source_cursor',$cursor);set_metadata($db,'last_full_sync',date('c'));set_metadata($db,'last_delta_sync',date('c'));set_metadata($db,'schema_version','2');$db->commit();$db=null;
+    $query=$source->query(source_select($source).source_where($source).' ORDER BY d.item_data_no');$db->beginTransaction();while($row=$query->fetch())insert_row($insert,$columns,$row);set_metadata($db,'source_cursor',$cursor);set_metadata($db,'last_full_sync',date('c'));set_metadata($db,'last_delta_sync',date('c'));set_metadata($db,'schema_version','2');$db->commit();$db=null;
     if(is_file($previousPath))unlink($previousPath);if(is_file($livePath)&&!rename($livePath,$previousPath)){unlink($temporary);throw new RuntimeException('Could not preserve previous snapshot.');}if(!rename($temporary,$livePath)){if(is_file($previousPath))rename($previousPath,$livePath);throw new RuntimeException('Could not activate new snapshot.');}chmod($livePath,0640);
 }
 function delta_sync($source,$livePath)
 {
     $db=open_snapshot($livePath);$cursor=(string)$db->query("SELECT value FROM metadata WHERE key='source_cursor'")->fetchColumn();if($cursor===''){throw new RuntimeException('Snapshot cursor is missing.');}$next=source_time($source);
-    $eligible=$source->query('SELECT d.item_data_no'.source_from().source_where());$db->beginTransaction();$db->exec('CREATE TEMP TABLE eligible_ids(item_data_no INTEGER PRIMARY KEY)');$eligibleInsert=$db->prepare('INSERT INTO eligible_ids(item_data_no) VALUES(:id)');while($row=$eligible->fetch())$eligibleInsert->execute(array(':id'=>(int)$row['item_data_no']));$db->exec('DELETE FROM products WHERE item_data_no NOT IN (SELECT item_data_no FROM eligible_ids)');
-    $query=$source->prepare(source_select($source).source_where().' AND d.datetime_update>=:cursor AND d.datetime_update<=:next ORDER BY d.datetime_update');$query->execute(array(':cursor'=>$cursor,':next'=>$next));list($insert,$columns)=insert_statement($db);while($row=$query->fetch())insert_row($insert,$columns,$row);set_metadata($db,'source_cursor',$next);set_metadata($db,'last_delta_sync',date('c'));$db->commit();
+    $eligible=$source->query('SELECT d.item_data_no'.source_from().source_where($source));$db->beginTransaction();$db->exec('CREATE TEMP TABLE eligible_ids(item_data_no INTEGER PRIMARY KEY)');$eligibleInsert=$db->prepare('INSERT INTO eligible_ids(item_data_no) VALUES(:id)');while($row=$eligible->fetch())$eligibleInsert->execute(array(':id'=>(int)$row['item_data_no']));$db->exec('DELETE FROM products WHERE item_data_no NOT IN (SELECT item_data_no FROM eligible_ids)');
+    $query=$source->prepare(source_select($source).source_where($source).' AND d.datetime_update>=:cursor AND d.datetime_update<=:next ORDER BY d.datetime_update');$query->execute(array(':cursor'=>$cursor,':next'=>$next));list($insert,$columns)=insert_statement($db);while($row=$query->fetch())insert_row($insert,$columns,$row);set_metadata($db,'source_cursor',$next);set_metadata($db,'last_delta_sync',date('c'));$db->commit();
 }
