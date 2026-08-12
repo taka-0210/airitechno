@@ -82,7 +82,7 @@ function source_column_expression($field,$alias)
 function source_select($source)
 {
     $warranty=source_warranty_columns($source);
-    return 'SELECT d.item_data_no,d.jancode,d.shop_id,d.status_no,d.rank_no,d.year,d.size_w,d.size_d,d.size_h,d.price_sales,d.flag_ask_price,d.comment,d.date_ship,d.datetime_stock,d.datetime_update,d.count_photo,d.cmn_photo_no,'.source_column_expression($warranty['enabled'],'warranty_enabled').','.source_column_expression($warranty['special'],'warranty_special_period').',m.name,m.supple,COALESCE(NULLIF(m.maker,\'\'),mk.maker_name) AS maker,m.model,m.price_fixed,m.flag_openprice,m.details,m.movie_url,m.opt_name1,m.opt_data1,m.opt_name2,m.opt_data2,m.opt_name3,m.opt_data3,m.opt_name4,m.opt_data4,m.opt_name5,m.opt_data5,m.opt_name6,m.opt_data6,m.opt_name7,m.opt_data7,m.opt_name8,m.opt_data8,m.opt_name9,m.opt_data9,m.opt_name10,m.opt_data10,m.opt_name11,m.opt_data11,m.opt_name12,m.opt_data12,m.opt_name13,m.opt_data13,m.opt_name14,m.opt_data14,m.opt_name15,m.opt_data15,c1.class1_no,c1.class1_name,c2.class2_no,c2.class2_name,s.shop_name,r.rank_name,st.status_name'.source_from();
+    return 'SELECT d.item_data_no,d.jancode,d.shop_id,d.status_no,d.rank_no,d.year,d.size_w,d.size_d,d.size_h,d.refrigerant_gas_no,d.price_sales,d.flag_ask_price,d.comment,d.date_ship,d.datetime_stock,d.datetime_update,d.count_photo,d.cmn_photo_no,'.source_column_expression($warranty['enabled'],'warranty_enabled').','.source_column_expression($warranty['special'],'warranty_special_period').',m.name,m.supple,COALESCE(NULLIF(m.maker,\'\'),mk.maker_name) AS maker,m.model,m.price_fixed,m.flag_openprice,m.details,m.movie_url,m.opt_name1,m.opt_data1,m.opt_name2,m.opt_data2,m.opt_name3,m.opt_data3,m.opt_name4,m.opt_data4,m.opt_name5,m.opt_data5,m.opt_name6,m.opt_data6,m.opt_name7,m.opt_data7,m.opt_name8,m.opt_data8,m.opt_name9,m.opt_data9,m.opt_name10,m.opt_data10,m.opt_name11,m.opt_data11,m.opt_name12,m.opt_data12,m.opt_name13,m.opt_data13,m.opt_name14,m.opt_data14,m.opt_name15,m.opt_data15,c1.class1_no,c1.class1_name,c2.class2_no,c2.class2_name,s.shop_name,r.rank_name,st.status_name'.source_from();
 }
 function open_snapshot($path)
 {
@@ -105,8 +105,27 @@ function insert_statement($db)
 }
 function mapped_row($row)
 {
-    $specifications=array();for($index=1;$index<=15;$index++){$label=trim((string)$row['opt_name'.$index]);$value=trim((string)$row['opt_data'.$index]);if($label!==''&&$value!=='')$specifications[]=array('label'=>$label,'value'=>$value);}
+    $specifications=source_specifications($row);
     return array('item_data_no'=>(int)$row['item_data_no'],'id'=>(string)$row['jancode'],'store_id'=>(string)$row['shop_id'],'store_name'=>trim(strip_tags((string)$row['shop_name'])),'status_no'=>(int)$row['status_no'],'status_label'=>(string)$row['status_name'],'rank_no'=>(int)$row['rank_no'],'rank_name'=>(string)$row['rank_name'],'year'=>(int)$row['year'],'size_w'=>(int)$row['size_w'],'size_d'=>(int)$row['size_d'],'size_h'=>(int)$row['size_h'],'price_sales'=>(int)$row['price_sales'],'flag_ask_price'=>(int)$row['flag_ask_price'],'comment'=>(string)$row['comment'],'date_ship'=>(string)$row['date_ship'],'datetime_stock'=>(string)$row['datetime_stock'],'datetime_update'=>(string)$row['datetime_update'],'count_photo'=>(int)$row['count_photo'],'cmn_photo_no'=>(int)$row['cmn_photo_no'],'warranty_enabled'=>$row['warranty_enabled']===null?null:(int)$row['warranty_enabled'],'warranty_special_period'=>(string)$row['warranty_special_period'],'name'=>(string)$row['name'],'supple'=>(string)$row['supple'],'maker'=>(string)$row['maker'],'model'=>(string)$row['model'],'price_fixed'=>(int)$row['price_fixed'],'flag_openprice'=>(int)$row['flag_openprice'],'details'=>(string)$row['details'],'movie_url'=>(string)$row['movie_url'],'specifications_json'=>json_encode($specifications,JSON_UNESCAPED_UNICODE),'class1_id'=>(int)$row['class1_no'],'class1_name'=>(string)$row['class1_name'],'class2_id'=>(int)$row['class2_no'],'class2_name'=>(string)$row['class2_name']);
+}
+function source_specifications($row)
+{
+    global $source;
+    $class=(int)$row['class1_no'];$value=function($index)use($row){return trim((string)$row['opt_data'.$index]);};$items=array();
+    $add=function($label,$data)use(&$items){$label=trim((string)$label);$data=trim((string)$data);if($label!==''&&$data!=='')$items[]=array('label'=>$label,'value'=>$data);};
+    if($class===1){$add('電源',$value(1));if(function_exists('getRefrigerantGasName'))$add('冷媒',getRefrigerantGasName($source,$row['refrigerant_gas_no']));$add($value(4),$value(5)===''?'':$value(5).' L');$add($value(6),$value(7)===''?'':$value(7).' L');$add($value(8),$value(9));}
+    elseif($class===2){$add('電源',$value(1));if(function_exists('getRefrigerantGasName'))$add('冷媒',getRefrigerantGasName($source,$row['refrigerant_gas_no']));$add('製氷能力',$value(10)===''?'':$value(10).' kg/日');}
+    elseif($class===3){$unit=$value(1)==='都市ガス'?' kcal/h':($value(1)===''?'':' kg/h');$add('ガス種',$value(1));$add('ガス消費量1',$value(3)===''?'':$value(3).' kW');$add('ガス消費量2',$value(4).$unit);$add($value(5),$value(6));}
+    elseif(in_array($class,array(4,5,6),true)){$add('電源',$value(1));$add('消費電力',trim($value(2).' '.$value(4)));$add('Hz',$value(3));$add($value(5),$value(6));}
+    elseif($class===7){$add('電源',$value(1));$add('洗浄能力',$value(2)===''?'':$value(2).' ラック/時（標準）');$add('タイプ',$value(7));$add('貯湯タンク',$value(3));$add($value(6),trim($value(4).' '.$value(5)));}
+    elseif($class===8){$add('電源',$value(1));$add('出力',$value(2)===''?'':$value(2).' W');$add('メモリー',$value(4));$add('庫内タイプ',$value(5));}
+    elseif($class===9){$add('印字方式',$value(1));$add('客面表示',$value(2));$add('部門数',$value(3));$add('ロール紙',trim($value(4).' ロール '.$value(5).' × '.$value(6).' mm'));$add('カギ',trim('責任者：'.$value(7).' スタッフ：'.$value(8).' 引出：'.$value(9)));}
+    elseif($class===10){$add('備考1',$value(2));$add('備考2',$value(3));}
+    elseif($class===11){$add($value(4),$value(1));$add('販売区分',$value(5));}
+    elseif($class===12){$add('電源',$value(1));if(function_exists('getRefrigerantGasName'))$add('冷媒',getRefrigerantGasName($source,$row['refrigerant_gas_no']));$add('外機型番',$value(2));$add('外機サイズ',trim('W：'.$value(5).' D：'.$value(6).' H：'.$value(7)));$add('冷暖房',$value(4));$add('リモコン',$value(8));}
+    elseif(in_array($class,array(13,14),true)){$add($value(4),$value(1));$add($value(5),$value(3));$add($value(6),$value(7));$add($value(8),$value(9));}
+    else{for($index=1;$index<=15;$index++)$add($row['opt_name'.$index],$value($index));}
+    return $items;
 }
 function snapshot_schema_version($path)
 {
