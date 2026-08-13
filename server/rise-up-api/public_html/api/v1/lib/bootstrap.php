@@ -203,17 +203,15 @@ function api_hyper_images($row, $includeAll)
 
 function api_hyper_videos($row)
 {
-    $configured = trim(isset($row['movie_url']) ? (string) $row['movie_url'] : '');
-    if ($configured !== '') {
-        return array(array('url' => $configured));
-    }
     $jancode = isset($row['jancode']) ? (string) $row['jancode'] : (isset($row['id']) ? (string) $row['id'] : '');
     if (!preg_match('/^[0-9]{13}$/', $jancode)) {
         return array();
     }
     $directory = rtrim(api_config('video_directory', RISE_UP_PUBLIC_ROOT . '/rubs/img/item_movie'), '/');
     $base = rtrim(api_config('video_base_url', 'https://rise-up.net/rubs/img/item_movie'), '/');
-    return is_file($directory . '/' . $jancode . '.mp4') ? array(array('url' => $base . '/' . $jancode . '.mp4')) : array();
+    return is_file($directory . '/' . $jancode . '.mp4')
+        ? array(array('url' => $base . '/' . $jancode . '.mp4', 'type' => 'individual'))
+        : array();
 }
 
 function api_warranty_period_label($value)

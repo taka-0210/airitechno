@@ -18,6 +18,8 @@
 
 商品動画は `/public_html/rubs/img/item_movie/{jancode}.mp4` へ集約します。既存の`pro-chubo.com`側の動画は、同梱の`sync/migrate-videos.php`で削除せずコピーできます。
 
+商品APIの`videos`には、商品番号に紐づく個体動画だけを`type: individual`付きで返します。型式マスターの`movie_url`は公開APIへ出力しません。厨房君で個体動画を登録し、商品を「HP掲載」にすると、公開対象商品の次回同期後に新サイトへ商品情報が反映されます。個体動画ファイルが存在する場合は、同じ商品APIレスポンスで動画も表示されます。
+
 ## 配置
 
 - `public_html/api/v1/` → `/home/{server-id}/rise-up.net/public_html/api/v1/`
