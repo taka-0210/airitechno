@@ -15,6 +15,7 @@ return array(
     'video_directory' => dirname(__FILE__) . '/public_html/rubs/img/item_movie',
     'video_base_url' => 'https://rise-up.net/rubs/img/item_movie',
     'legacy_video_directory' => dirname(dirname(__FILE__)) . '/pro-chubo.com/public_html/img_item_movie',
+    'legacy_video_base_url' => 'https://pro-chubo.com/img_item_movie',
     'max_per_page' => 60,
     'shipped_retention_days' => 30,
     'catalog_database_path' => dirname(__FILE__) . '/api-cache/catalog.sqlite',

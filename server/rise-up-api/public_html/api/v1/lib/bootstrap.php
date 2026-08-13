@@ -209,8 +209,13 @@ function api_hyper_videos($row)
     }
     $directory = rtrim(api_config('video_directory', RISE_UP_PUBLIC_ROOT . '/rubs/img/item_movie'), '/');
     $base = rtrim(api_config('video_base_url', 'https://rise-up.net/rubs/img/item_movie'), '/');
-    return is_file($directory . '/' . $jancode . '.mp4')
-        ? array(array('url' => $base . '/' . $jancode . '.mp4', 'type' => 'individual'))
+    if (is_file($directory . '/' . $jancode . '.mp4')) {
+        return array(array('url' => $base . '/' . $jancode . '.mp4', 'type' => 'individual'));
+    }
+    $legacyDirectory = rtrim(api_config('legacy_video_directory', dirname(RISE_UP_DOMAIN_ROOT) . '/pro-chubo.com/public_html/img_item_movie'), '/');
+    $legacyBase = rtrim(api_config('legacy_video_base_url', 'https://pro-chubo.com/img_item_movie'), '/');
+    return is_file($legacyDirectory . '/' . $jancode . '.mp4')
+        ? array(array('url' => $legacyBase . '/' . $jancode . '.mp4', 'type' => 'individual'))
         : array();
 }
 
