@@ -18,6 +18,17 @@ if((count($segments)===2&&$segments[0]==='catalog'&&$segments[1]==='categories')
 if((count($segments)===2&&$segments[0]==='catalog'&&$segments[1]==='products')||(count($segments)===3&&$segments[0]==='stores'&&$segments[2]==='products')){
     $storeId=$segments[0]==='stores'?$segments[1]:null;if($storeId===null)api_authorise_catalog($permissions);else api_authorise_store($permissions,$storeId);$page=max(1,isset($_GET['page'])?(int)$_GET['page']:1);$perPage=min(max(1,(int)api_config('max_per_page',60)),max(1,isset($_GET['per_page'])?(int)$_GET['per_page']:24));$offset=($page-1)*$perPage;$parameters=array();$where=snapshot_where($storeId,$parameters);
     if(isset($_GET['class1'])&&trim($_GET['class1'])!==''){$where.=' AND class1_name=:class1';$parameters[':class1']=trim($_GET['class1']);}if(isset($_GET['class2_id'])&&(int)$_GET['class2_id']>0){$where.=' AND class2_id=:class2_id';$parameters[':class2_id']=(int)$_GET['class2_id'];}if($storeId===null&&isset($_GET['store_id'])&&preg_match('/^[0-9A-Za-z_-]{1,10}$/',$_GET['store_id'])){$where.=' AND store_id=:filter_store';$parameters[':filter_store']=(string)$_GET['store_id'];}if(isset($_GET['status'])&&trim($_GET['status'])!==''){$map=array('available'=>1,'shipped'=>2,'negotiating'=>4,'reserved'=>5);if(!isset($map[$_GET['status']]))api_error(400,'Status is invalid.');$where.=' AND status_no=:status';$parameters[':status']=$map[$_GET['status']];}
+    $keyword=isset($_GET['q'])?trim((string)$_GET['q']):'';
+    if($keyword!==''){
+        if(function_exists('mb_strlen')&&mb_strlen($keyword,'UTF-8')>100)api_error(400,'Keyword is too long.');
+        if(function_exists('mb_convert_kana'))$keyword=mb_convert_kana($keyword,'asKV','UTF-8');
+        $terms=array_slice(preg_split('/[\s\x{3000}]+/u',$keyword,-1,PREG_SPLIT_NO_EMPTY),0,8);
+        foreach($terms as$index=>$term){
+            $key=':keyword_'.$index;
+            $where.=' AND (id LIKE '.$key.' OR name LIKE '.$key.' OR supple LIKE '.$key.' OR maker LIKE '.$key.' OR model LIKE '.$key.' OR class1_name LIKE '.$key.' OR class2_name LIKE '.$key.')';
+            $parameters[$key]='%'.$term.'%';
+        }
+    }
     $count=api_db()->prepare('SELECT COUNT(*) FROM products WHERE '.$where);$count->execute($parameters);$total=(int)$count->fetchColumn();$statement=api_db()->prepare('SELECT * FROM products WHERE '.$where.' ORDER BY CASE WHEN flag_ask_price=1 OR price_sales<=0 THEN 1 ELSE 0 END ASC,price_sales ASC,datetime_stock DESC,item_data_no DESC LIMIT '.$offset.','.$perPage);$statement->execute($parameters);$products=array();foreach($statement->fetchAll() as $row)$products[]=api_normalise_snapshot_product($row,false);$meta=snapshot_meta($storeId);$meta=array_merge($meta,array('page'=>$page,'per_page'=>$perPage,'total'=>$total,'total_pages'=>$total===0?0:(int)ceil($total/$perPage)));api_json(200,array('data'=>$products,'meta'=>$meta),60);
 }
 if(count($segments)===2&&$segments[0]==='products'){
