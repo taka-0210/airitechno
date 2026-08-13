@@ -3,6 +3,12 @@ require_once __DIR__ . '/lib/bootstrap.php';
 if(isset($_SERVER['REQUEST_METHOD'])&&$_SERVER['REQUEST_METHOD']!=='GET'){header('Allow: GET');api_error(405,'Only GET is supported.');}
 $permissions=api_authenticate();$path=parse_url(isset($_SERVER['REQUEST_URI'])?$_SERVER['REQUEST_URI']:'',PHP_URL_PATH);$prefix='/api/v1';if(strpos($path,$prefix)===0)$path=substr($path,strlen($prefix));$segments=array_values(array_filter(explode('/',trim($path,'/')),'strlen'));
 
+if(count($segments)===2&&$segments[0]==='catalog'&&$segments[1]==='video-products'){
+    api_authorise_catalog($permissions);$statement=api_db()->query('SELECT * FROM products ORDER BY datetime_stock DESC,item_data_no DESC');$products=array();
+    foreach($statement->fetchAll() as $row){if(api_hyper_videos($row)!==array())$products[]=api_normalise_snapshot_product($row,false);}
+    api_json(200,array('data'=>$products,'meta'=>array_merge(snapshot_meta(null),array('total'=>count($products)))),60);
+}
+
 if((count($segments)===2&&$segments[0]==='catalog'&&$segments[1]==='categories')||(count($segments)===3&&$segments[0]==='stores'&&$segments[2]==='categories')){
     $storeId=$segments[0]==='stores'?$segments[1]:null;if($storeId===null)api_authorise_catalog($permissions);else api_authorise_store($permissions,$storeId);
     $parameters=array();$where=snapshot_where($storeId,$parameters);$sql='SELECT class1_id,class1_name,class2_id,class2_name,COUNT(*) AS product_count FROM products WHERE '.$where.' GROUP BY class1_id,class1_name,class2_id,class2_name ORDER BY class1_id,class2_name ASC,class2_id';$statement=api_db()->prepare($sql);$statement->execute($parameters);$groups=array();
